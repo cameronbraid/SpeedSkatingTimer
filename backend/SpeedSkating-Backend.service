@@ -4,6 +4,7 @@ After=multi-user.target
 
 [Service]
 ExecStart=/home/pi/SpeedSkating-Backend
+WorkingDirectory=/home/pi/
 Restart=always
 RestartSec=5s
 
