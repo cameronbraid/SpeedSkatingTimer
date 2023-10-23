@@ -21,3 +21,8 @@ sudo systemctl start SpeedSkating-Backend.service
 cross build --release --target=armv7-unknown-linux-gnueabihf
 
 sudo apt-get install gcc-arm-linux-gnueabihf
+
+scp SpeedSkating-Backend.service pi@raspberrypi.local:/lib/systemd/system/
+systemctl daemon-reload
+systemctl start SpeedSkating-Backend.service
+systemctl enable SpeedSkating-Backend.service
