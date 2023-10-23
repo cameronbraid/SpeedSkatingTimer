@@ -1,0 +1,18 @@
+[package]
+name = "SpeedSkating-Backend"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+tokio = { version = "1.33", features = ["macros", "sync", "rt-multi-thread"] }
+tokio-stream = "0.1.14"
+warp = "0.3"
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+futures = { version = "0.3", default-features = false }
+nanoid = { version = "0.4" }
+chrono = { version = "0.4.23", features = ["serde"] }
+gpio-cdev = { version = "0.6" , features = ["async-tokio"] }
+color-eyre = "0.6.2"

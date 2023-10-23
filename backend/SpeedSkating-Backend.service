@@ -1,0 +1,11 @@
+[Unit]
+Description=Hello World
+After=multi-user.target
+
+[Service]
+ExecStart=/home/pi/SpeedSkating-Backend
+Restart=always
+RestartSec=5s
+
+[Install]
+WantedBy=multi-user.target
