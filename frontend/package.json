@@ -1,0 +1,28 @@
+{
+  "name": "speed-skating-timer-frontend",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc && vite build",
+    "preview": "vite preview",
+    "test": "vitest"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@types/ws": "^8.5.8",
+    "@vitejs/plugin-react-swc": "^3.4.0",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "react-use-websocket": "3.0.0",
+    "sass": "^1.69.4",
+    "ts-node": "^10.9.1",
+    "typescript": "^5.2.2",
+    "use-request-animation-frame": "^0.1.2",
+    "vite": "^4.5.0",
+    "ws": "^8.14.2"
+  }
+}

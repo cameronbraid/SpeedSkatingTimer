@@ -1,0 +1,36 @@
+@font-face {
+  font-family: "Digital-7-mono";
+  src: url("digital-7 (mono).ttf") format("truetype");
+}
+
+.Clock {
+    font-variant-numeric: tabular-nums;
+    border: 7px solid #eae9d2;
+    background-color: #3f4144;
+    border-radius: 5px;
+    font-family: "Digital-7-mono";
+    height: 35%;
+    width: 45%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 180px;
+    padding: 20px;
+
+    &.mini {
+      height: 10%;
+      width: 20%;
+      font-size: 100px;
+      margin-right: -360px;
+      margin-bottom: -35px;
+    }
+
+    &.miniPlaceholder {
+      height: 10%;
+      width: 20%;
+      font-size: 100px;
+      margin-right: -360px;
+      margin-bottom: -35px;
+      visibility: hidden;
+    }
+}
