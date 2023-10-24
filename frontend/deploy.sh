@@ -10,4 +10,4 @@ readonly TARGET_PATH=/home/pi/frontend/
 readonly SOURCE_PATH=./dist/
 
 pnpm vite build
-rsync -a ${SOURCE_PATH} ${TARGET_HOST}:${TARGET_PATH} 
+rsync -a --delete ${SOURCE_PATH} ${TARGET_HOST}:${TARGET_PATH} 
