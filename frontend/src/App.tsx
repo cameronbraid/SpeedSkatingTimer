@@ -11,7 +11,11 @@ type TsMessage = {
 
 export const App = () => {
   //Public API that will echo messages sent to it back to the client
-  const [socketUrl, setSocketUrl] = useState("ws://192.168.0.157:8000/ws"); // ws://localhost:1233
+
+  const [socketUrl, setSocketUrl] = useState(()=>{
+    return `ws://${window.location.host}/ws`
+  });
+   // ws://localhost:1233
   const [messageHistory, setMessageHistory] = useState<Array<TsMessage>>([]);
 
   const { sendMessage, lastMessage, readyState } = useWebSocket(socketUrl);
