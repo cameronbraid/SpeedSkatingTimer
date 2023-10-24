@@ -23,7 +23,7 @@ pub type Sample = u64;
 async fn main() {
     let clients: Clients = Arc::new(RwLock::new(HashMap::new()));
 
-    let frontend = warp::get().and(warp::fs::dir("/home/pi/frontend"));
+    let frontend = warp::get().and(warp::fs::dir("frontend"));
 
     let health_route = warp::path!("health").and_then(handler::health_handler);
 
