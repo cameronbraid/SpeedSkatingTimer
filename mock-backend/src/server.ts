@@ -9,7 +9,7 @@ wss.on("connection", (ws: WebSocket) => {
   
   function loop_send_timestamp() {
     setTimeout(() => {
-      ws.send(JSON.stringify({ type: "timestamp", timestamp: Date.now() }));
+      ws.send(JSON.stringify({ type: "timestamp", timestamp: Date.now(), duration: 2000000000 }));
       loop_send_timestamp();
     }, 2000);
   }
