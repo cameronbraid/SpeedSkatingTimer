@@ -1,19 +1,19 @@
 import useRequestAnimationFrame from "use-request-animation-frame";
 import { useState } from "react";
-import { Clock } from "./Clock";
+import { Clock, Mode } from "./Clock";
 
 export function TickingClock({
   timestamp,
-  warmUpLapTime,
+  mode,
 }: {
-  timestamp: number;
-  warmUpLapTime: boolean;
+  timestamp: number,
+  mode: Mode,
 }) {
-  let [duration, setDuration] = useState();
+  let [duration, setDuration] = useState(0);
 
   useRequestAnimationFrame(() => {
     setDuration(Date.now() - timestamp);
   }, {});
 
-  return <Clock duration={duration} warmUpLapTime={warmUpLapTime} />;
+  return <Clock duration={duration} mode={mode} />;
 }

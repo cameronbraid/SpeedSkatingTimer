@@ -3,40 +3,68 @@ import useWebSocket, { ReadyState } from "react-use-websocket";
 import { TickingClock } from "./TickingClock";
 import "./App.scss";
 import { Clock } from "./Clock";
+import { Route, Routes } from "react-router-dom";
+import { Setup } from "./Setup";
+import { useBackend } from "./useBackend";
 
 type TsMessage = {
-  type: "timestamp";
-  timestamp: number;
-};
+  type: "timestamp",
+  timestamp: number,
+  duration: number | null, // in nanoseconds
+}
+
+type ResetMessage = {
+  type: "reset"
+}
+type Message = TsMessage | ResetMessage
+
+
 
 export const App = () => {
-  //Public API that will echo messages sent to it back to the client
 
-  const [socketUrl, setSocketUrl] = useState(()=>{
-    return `ws://${window.location.host}/ws`
-  });
-   // ws://localhost:1233
+  return <Routes>
+    <Route path="/setup" element={<Setup />}>
+    </Route>
+    <Route path="/" element={<SingleLapTimer />}>
+    </Route>
+  </Routes>
+}
+
+
+
+const CONNECTION_STATUS = {
+  [ReadyState.CONNECTING]: "Connecting",
+  [ReadyState.OPEN]: "Connected",
+  [ReadyState.CLOSING]: "Disconnecting",
+  [ReadyState.CLOSED]: "Disconnected",
+  [ReadyState.UNINSTANTIATED]: "Uninstantiated",
+}
+
+const SingleLapTimer = () => {
   const [messageHistory, setMessageHistory] = useState<Array<TsMessage>>([]);
 
-  const { sendMessage, lastMessage, readyState } = useWebSocket(socketUrl);
+  const { sendJsonMessage, lastJsonMessage, readyState } = useBackend();
+
+  const reset = useCallback(() => {
+    sendJsonMessage({ type: "reset" });
+  }, [sendJsonMessage])
 
   useEffect(() => {
-    if (lastMessage !== null) {
-      if (messageHistory.length < 3) {
-        setMessageHistory((prev) => prev.concat(JSON.parse(lastMessage.data)));
+    if (lastJsonMessage !== null) {
+
+      let msg = lastJsonMessage as Message
+      if (msg.type === "timestamp") {
+        if (messageHistory.length < 3) {
+          setMessageHistory((prev) => prev.concat(msg as TsMessage));
+        }
       }
+      else if (msg.type === "reset") {
+        setMessageHistory([]);
+      }
+
     }
-  }, [lastMessage, setMessageHistory]);
+  }, [lastJsonMessage, setMessageHistory]);
 
-  // const handleClickSendMessage = useCallback(() => sendMessage('Hello'), []);
-
-  const connectionStatus = {
-    [ReadyState.CONNECTING]: "Connecting",
-    [ReadyState.OPEN]: "Connected",
-    [ReadyState.CLOSING]: "Disconnecting",
-    [ReadyState.CLOSED]: "Disconnected",
-    [ReadyState.UNINSTANTIATED]: "Uninstantiated",
-  }[readyState];
 
   return (
     <div className="App">
@@ -46,31 +74,31 @@ export const App = () => {
         <>
           <Clock
             duration={
-              messageHistory[1]?.timestamp - messageHistory[0]?.timestamp
+              messageHistory[1]?.duration / 1000000
             }
-            mode={"mini"}
+            mode="mini"
           />
         </>
       )}
       {messageHistory.length === 0 ? (
-        <Clock duration={0} mode={"big"} />
+        <Clock duration={0} mode="big" />
       ) : messageHistory.length < 3 ? (
         <TickingClock
           key={messageHistory.length}
           timestamp={messageHistory[messageHistory.length - 1].timestamp}
-          mode={"big"}
+          mode="big"
         />
       ) : (
         <Clock
-          duration={messageHistory[2].timestamp - messageHistory[1].timestamp}
-          mode={"big"}
+          duration={messageHistory[2].duration / 1000000}
+          mode="big"
         />
       )}
 
       <span>
-        <b>{connectionStatus}</b>
+        {CONNECTION_STATUS[readyState]}
       </span>
-      <button onClick={() => setMessageHistory([])}>Reset</button>
+      <button onClick={reset}>Reset</button>
     </div>
   );
 };

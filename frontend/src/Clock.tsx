@@ -1,7 +1,7 @@
 import classNames from "classnames";
 import "./Clock.scss";
 
-type Mode = "mini" | "big" | "miniPlaceholder";
+export type Mode = "mini" | "big" | "miniPlaceholder";
 
 export function Clock({
   duration,

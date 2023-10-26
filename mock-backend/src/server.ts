@@ -6,14 +6,27 @@ const wss = new WebSocket.Server({
 wss.on("connection", (ws: WebSocket) => {
   console.log("New client connected");
 
-  function loop() {
+  
+  function loop_send_timestamp() {
     setTimeout(() => {
       ws.send(JSON.stringify({ type: "timestamp", timestamp: Date.now() }));
-      loop();
+      loop_send_timestamp();
     }, 2000);
   }
 
-  loop();
+    
+  let connected = false;
+  function loop_send_setup() {
+    setTimeout(() => {
+      connected = !connected
+      ws.send(JSON.stringify({ type: "setup", connected }));
+      loop_send_setup();
+    }, 1000 +(Math.random() * 1000));
+  }
+
+  loop_send_timestamp();
+  
+  loop_send_setup();
 
   ws.on("message", (message: string) => {
     console.log(`Received message: ${message}`);
@@ -24,4 +37,4 @@ wss.on("connection", (ws: WebSocket) => {
   });
 });
 
-console.log("running");
+console.log("Listening on port 1233");
