@@ -11,7 +11,7 @@ type SetupMessage = {
 
 export const Setup = () => {
 
-    let [connected, setConnected] = useState(false);
+    let [connected, setConnected] = useState<boolean>(null);
     let [subscribed, setSubscribed] = useState(false);
 
     const { sendJsonMessage, lastJsonMessage, readyState } = useBackend();
@@ -19,7 +19,7 @@ export const Setup = () => {
     useEffect(() => {
 
         if (readyState == ReadyState.CLOSED) {
-            setConnected(false);
+            setConnected(null);
             setSubscribed(false);
         }
 
@@ -51,5 +51,5 @@ export const Setup = () => {
 
     }, [subscribed, readyState])
 
-    return <div style={{ position: "absolute", top: 0, left: 0, right: 0, bottom: 0, background: `${connected ? 'green' : 'red'}` }}></div>
+    return <div style={{ position: "absolute", top: 0, left: 0, right: 0, bottom: 0, background: `${connected === null ? "white" : connected ? 'green' : 'red'}` }}></div>
 }
