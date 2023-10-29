@@ -16,3 +16,6 @@ nanoid = { version = "0.4" }
 chrono = { version = "0.4.23", features = ["serde"] }
 gpio-cdev = { version = "0.6" , features = ["async-tokio"] }
 color-eyre = "0.6.2"
+embedded-graphics = "0.8.1"
+mipidsi = "0.7.1"
+embedded-graphics-simulator = "0.5.0"
