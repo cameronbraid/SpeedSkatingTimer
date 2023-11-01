@@ -1,16 +1,16 @@
-import React, { useState, useCallback, useEffect } from "react";
-import useWebSocket, { ReadyState } from "react-use-websocket";
-import { TickingClock } from "./TickingClock";
-import "./App.scss";
-import { Clock } from "./Clock";
-import { Route, Routes } from "react-router-dom";
-import { Setup } from "./Setup";
-import { useBackend } from "./useBackend";
+import React, { useState, useCallback, useEffect } from "react"
+import useWebSocket, { ReadyState } from "react-use-websocket"
+import { TickingClock } from "./TickingClock"
+import "./App.scss"
+import { Clock } from "./Clock"
+import { Route, Routes } from "react-router-dom"
+import { Setup } from "./Setup"
+import { useBackend } from "./useBackend"
 
 type TsMessage = {
-  type: "timestamp",
-  timestamp: number,
-  duration: number | null, // in nanoseconds
+  type: "timestamp"
+  timestamp: number
+  duration: number | null // in nanoseconds
 }
 
 type ResetMessage = {
@@ -18,19 +18,15 @@ type ResetMessage = {
 }
 type Message = TsMessage | ResetMessage
 
-
-
 export const App = () => {
-
-  return <Routes>
-    <Route path="/setup" element={<Setup />}>
-    </Route>
-    <Route path="/" element={<SingleLapTimer />}>
-    </Route>
-  </Routes>
+  return (
+    <Routes>
+      <Route path="/setup" element={<Setup />}></Route>
+      <Route path="/" element={<SingleLapTimer />}></Route>
+      <Route path="/timer" element={<LapTimer />}></Route>
+    </Routes>
+  )
 }
-
-
 
 const CONNECTION_STATUS = {
   [ReadyState.CONNECTING]: "Connecting",
@@ -41,30 +37,26 @@ const CONNECTION_STATUS = {
 }
 
 const SingleLapTimer = () => {
-  const [messageHistory, setMessageHistory] = useState<Array<TsMessage>>([]);
+  const [messageHistory, setMessageHistory] = useState<Array<TsMessage>>([])
 
-  const { sendJsonMessage, lastJsonMessage, readyState } = useBackend();
+  const { sendJsonMessage, lastJsonMessage, readyState } = useBackend()
 
   const reset = useCallback(() => {
-    sendJsonMessage({ type: "reset" });
+    sendJsonMessage({ type: "reset" })
   }, [sendJsonMessage])
 
   useEffect(() => {
     if (lastJsonMessage !== null) {
-
       let msg = lastJsonMessage as Message
       if (msg.type === "timestamp") {
         if (messageHistory.length < 3) {
-          setMessageHistory((prev) => prev.concat(msg as TsMessage));
+          setMessageHistory((prev) => prev.concat(msg as TsMessage))
         }
+      } else if (msg.type === "reset") {
+        setMessageHistory([])
       }
-      else if (msg.type === "reset") {
-        setMessageHistory([]);
-      }
-
     }
-  }, [lastJsonMessage, setMessageHistory]);
-
+  }, [lastJsonMessage, setMessageHistory])
 
   return (
     <div className="App">
@@ -72,33 +64,59 @@ const SingleLapTimer = () => {
         <Clock duration={0} mode={"miniPlaceholder"} />
       ) : (
         <>
-          <Clock
-            duration={
-              messageHistory[1]?.duration / 1000000
-            }
-            mode="mini"
-          />
+          <Clock duration={messageHistory[1]?.duration / 1000000} mode="mini" />
         </>
       )}
       {messageHistory.length === 0 ? (
         <Clock duration={0} mode="big" />
       ) : messageHistory.length < 3 ? (
-        <TickingClock
-          key={messageHistory.length}
-          timestamp={messageHistory[messageHistory.length - 1].timestamp}
-          mode="big"
-        />
+        <TickingClock key={messageHistory.length} timestamp={messageHistory[messageHistory.length - 1].timestamp} mode="big" />
       ) : (
-        <Clock
-          duration={messageHistory[2].duration / 1000000}
-          mode="big"
-        />
+        <Clock duration={messageHistory[2].duration / 1000000} mode="big" />
       )}
 
-      <span>
-        {CONNECTION_STATUS[readyState]}
-      </span>
+      <span>{CONNECTION_STATUS[readyState]}</span>
       <button onClick={reset}>Reset</button>
     </div>
-  );
-};
+  )
+}
+
+const LapTimer = () => {
+  const [message, setMessage] = useState<TsMessage>(null)
+
+  const { sendJsonMessage, lastJsonMessage, readyState } = useBackend()
+
+  const reset = useCallback(() => {
+    sendJsonMessage({ type: "reset" })
+  }, [sendJsonMessage])
+
+  useEffect(() => {
+    if (lastJsonMessage !== null) {
+      let msg = lastJsonMessage as Message
+      if (msg.type === "timestamp") {
+        setMessage(msg)
+      } else if (msg.type === "reset") {
+        setMessage(null)
+      }
+    }
+  }, [lastJsonMessage, setMessage])
+
+  return (
+    <div className="App">
+      {message ? (
+        <>
+          <TickingClock key={message.timestamp} timestamp={message.timestamp} mode="mini" />
+          <Clock duration={message.duration / 1000000} mode="big" />
+        </>
+      ) : (
+        <>
+          <Clock duration={0} mode="miniPlaceholder" />
+          <Clock duration={0} mode="big" />
+        </>
+      )}
+
+      <span>{CONNECTION_STATUS[readyState]}</span>
+      <button onClick={reset}>Reset</button>
+    </div>
+  )
+}
