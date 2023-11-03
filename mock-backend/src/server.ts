@@ -3,15 +3,17 @@ import WebSocket from "ws";
 const wss = new WebSocket.Server({
   port: 1233
 });
+
 wss.on("connection", (ws: WebSocket) => {
   console.log("New client connected");
 
   
   function loop_send_timestamp() {
+    let duration = 1000 + (Math.random() * 2000)
     setTimeout(() => {
-      ws.send(JSON.stringify({ type: "timestamp", timestamp: Date.now(), duration: 2000000000 }));
+      ws.send(JSON.stringify({ type: "timestamp", timestamp: Date.now(), duration: duration * 1000000 }));
       loop_send_timestamp();
-    }, 2000);
+    }, duration);
   }
 
     

@@ -46,6 +46,7 @@ const SingleLapTimer = () => {
   }, [sendJsonMessage])
 
   useEffect(() => {
+
     if (lastJsonMessage !== null) {
       let msg = lastJsonMessage as Message
       if (msg.type === "timestamp") {
@@ -82,41 +83,65 @@ const SingleLapTimer = () => {
 }
 
 const LapTimer = () => {
-  const [message, setMessage] = useState<TsMessage>(null)
+  const [messages, setMessages] = useState<TsMessage[]>([])
+  const [lapTimes, setLapTimes] = useState<TsMessage[]>([])
 
   const { sendJsonMessage, lastJsonMessage, readyState } = useBackend()
 
   const reset = useCallback(() => {
     sendJsonMessage({ type: "reset" })
+    setMessages([])
   }, [sendJsonMessage])
+
 
   useEffect(() => {
     if (lastJsonMessage !== null) {
-      let msg = lastJsonMessage as Message
-      if (msg.type === "timestamp") {
-        setMessage(msg)
-      } else if (msg.type === "reset") {
-        setMessage(null)
+      let m = lastJsonMessage as Message
+      if (m.type === "timestamp") {
+        let msg = m as TsMessage
+        if (messages.length > 0) {
+          setLapTimes(s => [...s, msg])
+        }
+
+        setMessages(msgs => {
+          msgs = [...msgs]
+          msgs.push(msg as TsMessage)
+          while (msgs.length > 2) {
+            msgs.splice(0, 1)
+          }
+          return msgs
+        })
+      } else if (m.type === "reset") {
+        setMessages([])
       }
     }
-  }, [lastJsonMessage, setMessage])
+  }, [lastJsonMessage, setMessages])
 
   return (
     <div className="App">
-      {message ? (
+      <Clock key='0' duration={0} mode="miniPlaceholder" />
+
+      {messages.length == 0 ?
         <>
-          <TickingClock key={message.timestamp} timestamp={message.timestamp} mode="mini" />
-          <Clock duration={message.duration / 1000000} mode="big" />
+          <Clock key='0' duration={0} mode="miniPlaceholder" />
+          <Clock key='1' duration={0} mode="big" />
         </>
-      ) : (
-        <>
-          <Clock duration={0} mode="miniPlaceholder" />
-          <Clock duration={0} mode="big" />
-        </>
-      )}
+        : messages.length == 1 ?
+          <>
+            <TickingClock key={messages[0].timestamp} timestamp={messages[0].timestamp} mode="mini" />
+            <Clock duration={0} mode="big" />
+          </>
+          :
+          <>
+            <TickingClock key={messages[1].timestamp} timestamp={messages[1].timestamp} mode="mini" />
+            <Clock duration={messages[1].duration / 1000000} mode="big" />
+          </>
+      }
 
       <span>{CONNECTION_STATUS[readyState]}</span>
       <button onClick={reset}>Reset</button>
+      {/* <button onClick={sample}>Sample</button> */}
+      <div >{lapTimes.map((lapTime => <span>{(lapTime.duration / 1000000000).toFixed(3)} </span>))}</div>
     </div>
   )
 }
