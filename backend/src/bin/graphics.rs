@@ -1,4 +1,3 @@
-
 extern crate embedded_graphics;
 extern crate embedded_graphics_simulator;
 
@@ -12,7 +11,7 @@ use embedded_graphics_simulator::{
 };
 
 const BACKGROUND_COLOR: Rgb888 = Rgb888::BLACK;
-const FOREGROUND_COLOR: Rgb888 = Rgb888::RED;
+const FOREGROUND_COLOR: Rgb888 = Rgb888::BLUE;
 const KEYBOARD_DELTA: i32 = 20;
 
 fn move_circle(
