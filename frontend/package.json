@@ -1,10 +1,10 @@
 {
   "name": "speed-skating-timer-frontend",
-  "version": "1.0.0",
+  "version": "2.0.0",
   "description": "",
   "main": "index.js",
   "scripts": {
-    "dev": "VITE_WS_URL=ws://localhost:1233/ws vite",
+    "dev": "vite",
     "build": "tsc && vite build",
     "preview": "vite preview",
     "test": "vitest"
@@ -13,22 +13,27 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "@types/react": "^18.2.32",
-    "@types/ws": "^8.5.8",
-    "@vitejs/plugin-react-swc": "^3.4.0",
-    "classnames": "^2.3.2",
-    "localforage": "^1.10.0",
-    "match-sorter": "^6.3.1",
-    "react": "^18.2.0",
-    "react-dom": "^18.2.0",
-    "react-router-dom": "^6.17.0",
-    "react-use-websocket": "3.0.0",
-    "sass": "^1.69.4",
-    "sort-by": "^1.2.0",
-    "ts-node": "^10.9.1",
-    "typescript": "^5.2.2",
-    "use-request-animation-frame": "^0.1.2",
-    "vite": "^4.5.0",
-    "ws": "^8.14.2"
+    "@mantine/core": "^8.3.10",
+    "@mantine/hooks": "^8.3.10",
+    "@nats-io/nats-core": "^3.3.0",
+    "@nats-io/jetstream": "^3.3.0",
+    "@tabler/icons-react": "^3.36.0",
+    "@tanstack/react-router": "^1.95.0",
+    "@vitejs/plugin-react-swc": "^3.7.1",
+    "auto-text-size": "^0.2.3",
+    "classnames": "^2.5.1",
+    "react": "^19.0.0",
+    "react-7-segment-display": "1.1.5",
+    "react-dom": "^19.0.0",
+    "sass": "^1.83.0",
+    "use-request-animation-frame": "^0.1.2"
+  },
+  "devDependencies": {
+    "@tanstack/router-plugin": "^1.95.0",
+    "@types/node": "^22.10.5",
+    "@types/react": "^19.0.6",
+    "@types/react-dom": "^19.0.2",
+    "typescript": "^5.7.2",
+    "vite": "^6.0.5"
   }
 }

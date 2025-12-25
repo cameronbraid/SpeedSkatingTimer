@@ -1,0 +1,14 @@
+[Unit]
+Description=Speed Skating Timer Service
+After=multi-user.target nats.service
+Requires=nats.service
+
+[Service]
+ExecStartPre=/bin/sleep 2
+ExecStart=/home/pi/app/run.sh
+WorkingDirectory=/home/pi/app
+Restart=always
+RestartSec=5s
+
+[Install]
+WantedBy=multi-user.target

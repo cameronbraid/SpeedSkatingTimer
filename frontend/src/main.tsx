@@ -1,13 +1,20 @@
-import React from "react";
-import ReactDOM from "react-dom/client";
-import { App } from "./App";
-import { HashRouter } from "react-router-dom";
+import React from 'react'
+import ReactDOM from 'react-dom/client'
+import { RouterProvider, createRouter } from '@tanstack/react-router'
+import { routeTree } from './routeTree.gen'
+import '@mantine/core/styles.css'
+import './index.scss'
 
+const router = createRouter({ routeTree })
 
-ReactDOM.createRoot(document.getElementById("root") as HTMLElement).render(
+declare module '@tanstack/react-router' {
+  interface Register {
+    router: typeof router
+  }
+}
+
+ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>
-    <HashRouter>
-      <App />
-    </HashRouter>
+    <RouterProvider router={router} />
   </React.StrictMode>
-);
+)

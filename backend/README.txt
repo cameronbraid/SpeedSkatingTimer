@@ -13,16 +13,16 @@ sudo apt install gcc make gcc-arm-linux-gnueabi binutils-arm-linux-gnueabi
 rustup target add armv7-unknown-linux-gnueabi
 
 sudo systemctl daemon-reload
-sudo systemctl enable SpeedSkating-Backend.service
+sudo systemctl enable SpeedSkating.service
 
-sudo systemctl start SpeedSkating-Backend.service
+sudo systemctl start SpeedSkating.service
 
 
 cross build --release --target=armv7-unknown-linux-gnueabihf
 
 sudo apt-get install gcc-arm-linux-gnueabihf
 
-scp SpeedSkating-Backend.service pi@raspberrypi.local:/lib/systemd/system/
+scp SpeedSkating.service pi@raspberrypi.local:/lib/systemd/system/
 systemctl daemon-reload
-systemctl start SpeedSkating-Backend.service
-systemctl enable SpeedSkating-Backend.service
+systemctl start SpeedSkating.service
+systemctl enable SpeedSkating.service

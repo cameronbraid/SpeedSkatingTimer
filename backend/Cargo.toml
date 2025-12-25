@@ -1,21 +1,45 @@
 [package]
-name = "SpeedSkating-Backend"
-version = "0.1.0"
-edition = "2021"
+name = "SpeedSkating"
+version = "2.0.0"
+edition = "2024"
 
-# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+[lib]
+name = "speedskating_backend"
+path = "src/lib.rs"
+
+[[bin]]
+name = "server"
+path = "src/bin/server.rs"
+
+[[bin]]
+name = "tui"
+path = "src/bin/tui.rs"
 
 [dependencies]
-tokio = { version = "1.33", features = ["macros", "sync", "rt-multi-thread"] }
-tokio-stream = "0.1.14"
-warp = "0.3"
-serde = { version = "1.0", features = ["derive"] }
-serde_json = "1.0"
-futures = { version = "0.3", default-features = false }
-nanoid = { version = "0.4" }
-chrono = { version = "0.4.23", features = ["serde"] }
-gpio-cdev = { version = "0.6" , features = ["async-tokio"] }
-color-eyre = "0.6.2"
-embedded-graphics = "0.8.1"
-mipidsi = "0.7.1"
-embedded-graphics-simulator = "0.5.0"
+tokio = { version = "1.33", features = ["macros", "sync", "rt-multi-thread", "time", "signal"] }
+tokio-stream = "0.1"
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+futures = { version = "0", default-features = false }
+gpio-cdev = { version = "0.6", features = ["async-tokio"] }
+color-eyre = "0"
+async-nats = "0"
+clap = { version = "4", features = ["derive"] }
+crossterm = "0.28"
+ratatui = "0.28"
+tracing = "0.1"
+tracing-subscriber = { version = "0.3", features = ["env-filter"] }
+axum = { version = "0.7", features = ["ws"] }
+tower-http = { version = "0.6", features = ["cors", "fs"] }
+tokio-tungstenite = "0.24"
+nix = { version = "0.28", default-features = false, features = ["time"] }
+nats-jwt = "0.3.0"
+serde_yaml = "0.9"
+base64 = "0.22"
+ed25519-dalek = "2.1"
+pkcs8 = "0.10"
+data-encoding = "2.5"
+chrono = "0.4.42"
+reverse-proxy-service = { git = "https://github.com/cameronbraid/reverse-proxy-service.git", branch = "hyper-1.0.0", default-features = false, features = ["axum", "http2"] }
+tower = "0.5"
+nanoid = "0.4"

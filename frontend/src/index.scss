@@ -1,0 +1,30 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html {
+  background-color: #0d0d0d;
+}
+
+body {
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  background-color: #0d0d0d;
+}
+
+#root {
+  display: contents;
+}
+
+// Override Mantine AppShell background to be dark gray
+[data-mantine-color-scheme="dark"] .mantine-AppShell-main {
+  background-color: #0d0d0d;
+}
+
+.mantine-AppShell-main {
+  background-color: #0d0d0d;
+}
+
+

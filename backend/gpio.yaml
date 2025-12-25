@@ -1,0 +1,22 @@
+# GPIO Configuration
+# Defines the GPIO chip and pins for speed skating triggers
+
+chip: /dev/gpiochip1
+
+# Debounce settings
+debounce:
+  quiet_period_ms: 200  # Wait this long with no edges before emitting trigger
+  max_wait_ms: 3000     # Maximum time to wait before forcing trigger emission
+
+# Pin definitions - each pin has a number, friendly name, and active_high setting
+# active_high: true means pin is active when high (rising edge = active)
+# active_high: false means pin is active when low (falling edge = active)
+# Defaults to true if not specified
+pins:
+  - pin: 10
+    name: "Top"
+    active_high: true
+
+  - pin: 11
+    name: "Bottom"
+    active_high: true

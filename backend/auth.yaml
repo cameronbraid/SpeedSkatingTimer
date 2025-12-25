@@ -1,0 +1,12 @@
+# NATS Authentication Configuration
+# Maps PIN codes 4 digits to NATS permissions
+
+pins:
+  - pin: 1234
+    permissions:
+      publish:
+        - ">"
+      subscribe:
+        - ">"
+  
+

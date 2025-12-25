@@ -1,0 +1,74 @@
+.StopwatchPage {
+  height: 100%;
+  width: 100%;
+  padding: 0;
+  margin: 0;
+  font-size: 1.5em;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  box-sizing: border-box;
+
+  .DurationContainer {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 100%;
+    max-width: 100%;
+    box-sizing: border-box;
+    padding: 0;
+    overflow-x: hidden;
+    flex-shrink: 0;
+    margin-top: 2em;
+
+    @media only screen and (max-width: 900px) {
+      margin-top: 1.5em;
+    }
+  }
+
+  .clock-placeholder {
+    height: 10%;
+    width: 20%;
+    visibility: hidden;
+  }
+
+  .controls {
+    display: flex;
+    gap: 1em;
+    justify-content: center;
+    align-items: center;
+    box-sizing: border-box;
+    padding: 0 1em;
+    flex-shrink: 0;
+    margin-top: 1em;
+  }
+
+  .LapsContainer {
+    width: 100%;
+    max-width: min(800px, 100%);
+    overflow-y: auto;
+    overflow-x: hidden;
+    padding: 0 1em;
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+    align-items: center;
+    justify-content: flex-start;
+    flex: 1;
+    min-height: 0;
+    margin-top: 1em;
+
+    @media only screen and (max-width: 900px) {
+      margin-top: 1.5em;
+    }
+
+    .LapClock {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      width: 100%;
+    }
+  }
+}
+
