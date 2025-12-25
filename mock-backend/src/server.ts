@@ -8,11 +8,11 @@ wss.on("connection", (ws: WebSocket) => {
   console.log("New client connected");
 
   
-  function loop_send_timestamp() {
+  function loop_send_timer() {
     let duration = 1000 + (Math.random() * 2000)
     setTimeout(() => {
-      ws.send(JSON.stringify({ type: "timestamp", timestamp: Date.now(), duration: duration * 1000000 }));
-      loop_send_timestamp();
+      ws.send(JSON.stringify({ type: "timer", timestamp: Date.now(), duration: duration * 1000000 }));
+      loop_send_timer();
     }, duration);
   }
 
@@ -26,7 +26,7 @@ wss.on("connection", (ws: WebSocket) => {
     }, 1000 +(Math.random() * 1000));
   }
 
-  loop_send_timestamp();
+  loop_send_timer();
   
   loop_send_setup();
 

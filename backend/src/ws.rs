@@ -1,14 +1,14 @@
-use crate::{
-    data::{DataMessage, ResetMessage},
-    Client, Clients,
-};
+use std::sync::Arc;
+
 use futures::{FutureExt, StreamExt};
 use nanoid::nanoid;
 use tokio::sync::mpsc;
 use tokio_stream::wrappers::UnboundedReceiverStream;
-use warp::ws::{Message, WebSocket};
+use warp::ws::WebSocket;
 
-pub async fn client_connection(ws: WebSocket, clients: Clients) {
+use crate::App;
+
+pub async fn client_connection(ws: WebSocket, app: Arc<App>) {
     let (client_ws_sender, mut client_ws_rcv) = ws.split();
     let (client_sender, client_rcv) = mpsc::unbounded_channel();
     let id = nanoid!();
@@ -22,12 +22,7 @@ pub async fn client_connection(ws: WebSocket, clients: Clients) {
         })
     });
 
-    let client = Client {
-        id: id.clone(),
-        subscribed_to_setup: false,
-        sender: client_sender,
-    };
-    clients.write().await.insert(id.clone(), client);
+    app.new_client(id.clone(), client_sender).await;
 
     println!("Client {} : connected", id);
 
@@ -39,44 +34,10 @@ pub async fn client_connection(ws: WebSocket, clients: Clients) {
                 break;
             }
         };
-        client_msg(&id, msg, &clients).await;
+        app.handle_msg_from_client(&id, msg).await;
     }
 
-    clients.write().await.remove(&id);
+    app.client_disconnected(&id).await;
+    
     println!("Client {} : disconnected", id);
-}
-
-async fn client_msg(id: &str, msg: Message, clients: &Clients) {
-    let mut clients = clients.write().await;
-
-    if let Some(client) = clients.get_mut(id) {
-        if let Ok(text) = msg.to_str() {
-            println!("Client {} : received message: {}", id, text);
-            let msg: DataMessage = serde_json::from_str(text).unwrap();
-            match msg {
-                DataMessage::SubscribeSetup(..) => {
-                    println!("Client {} : Subscribe to setup", client.id);
-                    client.subscribed_to_setup = true;
-                }
-                DataMessage::UnSubscribeSetup(..) => {
-                    println!("Client {} : UnSubscribe to setup", client.id);
-                    client.subscribed_to_setup = false;
-                }
-                DataMessage::Reset(..) => {
-                    println!("Client {} : Requested Reset", client.id);
-                    // send a reset message to all clients
-                    let response =
-                        serde_json::to_string(&DataMessage::Reset(ResetMessage { id: Some(nanoid!()) }))
-                            .expect("unable to serialise");
-                    let m = warp::ws::Message::text(response);
-                    for (_, client) in clients.iter() {
-                        let _ = client.sender.send(Ok(m.clone()));
-                    }
-                }
-                m => {
-                    println!("Client {} : unknown received message: {:?}", id, m);
-                }
-            };
-        }
-    }
 }

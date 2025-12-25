@@ -1,66 +1,29 @@
-use std::time::Instant;
+use core::panic;
+use std::sync::Arc;
 
-use crate::{
-    data::{DataMessage, SetupMessage, TimestampMessage},
-    Clients, Sample,
-};
+use crate::{App, SwitchState};
 use chrono::Utc;
 use color_eyre::Result;
-use futures::stream::StreamExt;
-use gpio_cdev::{
-    AsyncLineEventHandle, Chip, EventRequestFlags, EventType, LineEvent, LineRequestFlags,
-};
+use futures::StreamExt;
+use gpiocdev::tokio::AsyncRequest;
 use tokio::sync::mpsc;
 
-pub async fn run(clients: Clients, mock: bool) {
-    let (sample_sender, mut sample_recv) = mpsc::unbounded_channel();
-    let (setup_sender, mut setup_recv) = mpsc::unbounded_channel();
+pub async fn run(
+    app: Arc<App>
+) {
+    let (minitor_sender, mut monitor_recv) = mpsc::unbounded_channel();
 
-    if mock {
-        tokio::spawn(mock_gpio_sender(
-            sample_sender,
-            setup_sender,
-            tokio::time::Duration::from_secs(1),
-        ));
-    } else {
-        tokio::spawn(gpio_sender(sample_sender, setup_sender, 14)); // pin 40 = GPIO 21, pin 8 = GPIO 14
-    }
+    tokio::spawn(gpio_sender(minitor_sender, 14)); // pin 40 = GPIO 21, pin 8 = GPIO 14
 
     loop {
         tokio::select! {
-            sample = sample_recv.recv() => {
-                match sample {
-                    Some(sample) => {
-                        let  clients = clients.read().await;
-                        for (_, client) in clients.iter() {
-                            let response =
-                                serde_json::to_string(&DataMessage::Timestamp(TimestampMessage {
-                                    timestamp: sample.timestamp,
-                                    duration: sample.duration,
-                                }))
-                                .expect("unable to serialise");
-                            let _ = client.sender.send(Ok(warp::ws::Message::text(response)));
-                        }
-                    }
-                    None => {
-                        break;
-                    }
-
-                }
+            _tick = tokio::time::sleep(tokio::time::Duration::from_secs(1)) => {
+              app.send_heartbeat().await;
             },
-            setup = setup_recv.recv() => {
-                match setup {
-                    Some(connected) => {
-                        let  clients = clients.read().await;
-                        for (_, client) in clients.iter().filter(|(_, client)|client.subscribed_to_setup) {
-                            println!("Client {} : sending setup message", client.id);
-                            let response =
-                                serde_json::to_string(&DataMessage::Setup(SetupMessage {
-                                    connected
-                                }))
-                                .expect("unable to serialise");
-                            let _ = client.sender.send(Ok(warp::ws::Message::text(response)));
-                        }
+            event = monitor_recv.recv() => {
+                match event {
+                    Some(event) => {
+                        app.update_switch_state(event).await;
                     }
                     None => {
                         break;
@@ -71,75 +34,58 @@ pub async fn run(clients: Clients, mock: bool) {
     }
 }
 
-async fn mock_gpio_sender(
-    sender: mpsc::UnboundedSender<Sample>,
-    setup_sender: mpsc::UnboundedSender<bool>,
-    duration: tokio::time::Duration,
-) {
-    let mut connected = false;
+// async fn mock_gpio_sender(
+//     sender: mpsc::UnboundedSender<Sample>,
+//     setup_sender: mpsc::UnboundedSender<bool>,
+//     duration: tokio::time::Duration,
+// ) {
+//     let mut connected = false;
 
-    loop {
-        connected = !connected;
+//     loop {
+//         connected = !connected;
 
-        setup_sender.send(connected).unwrap();
+//         setup_sender.send(connected).unwrap();
 
-        let _ = sender.send(Sample {
-            timestamp: Utc::now().timestamp_millis() as u64,
-            duration: Some(duration.as_millis() as u64),
+//         let _ = sender.send(Sample {
+//             timestamp: Utc::now().timestamp_millis() as u64,
+//             duration: Some(duration.as_millis() as u64),
+//         });
+//         tokio::time::sleep(duration).await;
+//     }
+// }
+
+
+async fn gpio_sender(monitor_tx: mpsc::UnboundedSender<SwitchState>, line: u32) -> Result<()> {
+    let req = gpiocdev::Request::builder()
+        .on_chip("/dev/gpiochip0")
+        .with_line(line)
+        .as_input()
+        .with_edge_detection(gpiocdev::line::EdgeDetection::BothEdges)
+        .request()?;
+
+    let initial_value = req.value(line)?;
+
+    let areq = AsyncRequest::new(req);
+    let mut evt_stream = areq.new_edge_event_stream(1000);
+
+    monitor_tx.send(SwitchState {
+        value: initial_value.into(),
+        timestamp_ms: Utc::now().timestamp_millis() as u64,
+    })?;
+
+    while let Some(Ok(event)) = evt_stream.next().await {
+        let now_ms = Utc::now().timestamp_millis() as u64;
+
+        let value = match event.kind {
+            gpiocdev::line::EdgeKind::Rising => true,
+            gpiocdev::line::EdgeKind::Falling => false,
+        };
+
+        // send all events to the monitor
+        let _ = monitor_tx.send(SwitchState {
+            value,
+            timestamp_ms: now_ms,
         });
-        tokio::time::sleep(duration).await;
-    }
-}
-
-async fn gpio_sender(
-    sample_sender: mpsc::UnboundedSender<Sample>,
-    setup_sender: mpsc::UnboundedSender<bool>,
-    line: u32,
-) -> Result<()> {
-    let mut chip = Chip::new("/dev/gpiochip0")?;
-
-    let input = chip.get_line(line)?;
-
-    let mut events = AsyncLineEventHandle::new(input.events(
-        LineRequestFlags::INPUT,
-        EventRequestFlags::BOTH_EDGES,
-        "read-gpio",
-    )?)?;
-
-    let debounce = std::time::Duration::from_secs(3);
-    let mut debounce_last_sent: Option<Instant> = None;
-    let mut last_event: Option<LineEvent> = None;
-    loop {
-        match events.next().await {
-            Some(Ok(evt)) => {
-                setup_sender.send(matches!(evt.event_type(), EventType::RisingEdge))?;
-
-                if let Some(last) = debounce_last_sent {
-                    if last.elapsed() < debounce {
-                        continue;
-                    }
-                }
-                debounce_last_sent = Some(Instant::now());
-
-                let duration = if let Some(last) = last_event.as_ref() {
-                    Some(evt.timestamp() - last.timestamp())
-                } else {
-                    None
-                };
-                sample_sender.send(Sample {
-                    timestamp: Utc::now().timestamp_millis() as u64,
-                    duration,
-                })?;
-
-                last_event = Some(evt);
-            }
-            Some(Err(e)) => {
-                eprintln!("Error: {}", e);
-            }
-            None => {
-                break;
-            }
-        }
     }
 
     Ok(())

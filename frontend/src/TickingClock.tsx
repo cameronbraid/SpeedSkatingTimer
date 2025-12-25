@@ -12,7 +12,7 @@ export function TickingClock({
   let [duration, setDuration] = useState(0);
 
   useRequestAnimationFrame(() => {
-    setDuration(Date.now() - timestamp);
+    setDuration(Math.max(0, Date.now() - timestamp));
   }, {});
 
   return <Clock duration={duration} mode={mode} />;

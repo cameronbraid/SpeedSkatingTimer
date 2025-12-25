@@ -7,16 +7,20 @@ import { Route, Routes } from "react-router-dom"
 import { Setup } from "./Setup"
 import { useBackend } from "./useBackend"
 
-type TsMessage = {
-  type: "timestamp"
+type TimerMessage = {
+  type: "timer"
   timestamp: number
   duration: number | null // in nanoseconds
+}
+type TimestampMessage = {
+  type: "timestamp"
+  timestamp: number
 }
 
 type ResetMessage = {
   type: "reset"
 }
-type Message = TsMessage | ResetMessage
+type Message = TimerMessage | ResetMessage | TimestampMessage
 
 export const App = () => {
   return (
@@ -37,10 +41,10 @@ const CONNECTION_STATUS = {
 }
 
 const SingleLapTimer = () => {
-  const [messageHistory, setMessageHistory] = useState<Array<TsMessage>>([])
+  const [messageHistory, setMessageHistory] = useState<Array<TimerMessage>>([])
 
   const { sendJsonMessage, lastJsonMessage, readyState } = useBackend()
-
+  const [skew, setSkew] = useState<number>(0)
   const reset = useCallback(() => {
     sendJsonMessage({ type: "reset" })
   }, [sendJsonMessage])
@@ -49,13 +53,18 @@ const SingleLapTimer = () => {
 
     if (lastJsonMessage !== null) {
       let msg = lastJsonMessage as Message
-      if (msg.type === "timestamp") {
+      if (msg.type === "timer") {
         if (messageHistory.length < 3) {
-          setMessageHistory((prev) => prev.concat(msg as TsMessage))
+          setMessageHistory((prev) => prev.concat(msg as TimerMessage))
         }
       } else if (msg.type === "reset") {
         setMessageHistory([])
       }
+      else if (msg.type === "timestamp") {
+        let msg2= msg as TimestampMessage
+        // adjust clock skew
+        setSkew(msg2.timestamp - Date.now())
+        }
     }
   }, [lastJsonMessage, setMessageHistory])
 
@@ -71,7 +80,7 @@ const SingleLapTimer = () => {
       {messageHistory.length === 0 ? (
         <Clock duration={0} mode="big" />
       ) : messageHistory.length < 3 ? (
-        <TickingClock key={messageHistory.length} timestamp={messageHistory[messageHistory.length - 1].timestamp} mode="big" />
+        <TickingClock key={messageHistory.length} timestamp={messageHistory[messageHistory.length - 1].timestamp-skew} mode="big" />
       ) : (
         <Clock duration={messageHistory[2].duration / 1000000} mode="big" />
       )}
@@ -83,8 +92,9 @@ const SingleLapTimer = () => {
 }
 
 const LapTimer = () => {
-  const [messages, setMessages] = useState<TsMessage[]>([])
-  const [lapTimes, setLapTimes] = useState<TsMessage[]>([])
+  const [messages, setMessages] = useState<TimerMessage[]>([])
+  const [skew, setSkew] = useState<number>(0)
+  const [lapTimes, setLapTimes] = useState<TimerMessage[]>([])
 
   const { sendJsonMessage, lastJsonMessage, readyState } = useBackend()
 
@@ -97,15 +107,16 @@ const LapTimer = () => {
   useEffect(() => {
     if (lastJsonMessage !== null) {
       let m = lastJsonMessage as Message
-      if (m.type === "timestamp") {
-        let msg = m as TsMessage
+      console.log("new message", m)
+      if (m.type === "timer") {
+        let msg = m as TimerMessage
         if (messages.length > 0) {
           setLapTimes(s => [...s, msg])
         }
 
         setMessages(msgs => {
           msgs = [...msgs]
-          msgs.push(msg as TsMessage)
+          msgs.push(msg as TimerMessage)
           while (msgs.length > 2) {
             msgs.splice(0, 1)
           }
@@ -114,6 +125,11 @@ const LapTimer = () => {
       } else if (m.type === "reset") {
         setMessages([])
       }
+      else if (m.type === "timestamp") {
+        let msg = m as TimestampMessage
+        setSkew(msg.timestamp - Date.now())
+      }
+
     }
   }, [lastJsonMessage, setMessages])
 
@@ -128,12 +144,12 @@ const LapTimer = () => {
         </>
         : messages.length == 1 ?
           <>
-            <TickingClock key={messages[0].timestamp} timestamp={messages[0].timestamp} mode="mini" />
+            <TickingClock key={messages[0].timestamp} timestamp={messages[0].timestamp-skew} mode="mini" />
             <Clock duration={0} mode="big" />
           </>
           :
           <>
-            <TickingClock key={messages[1].timestamp} timestamp={messages[1].timestamp} mode="mini" />
+            <TickingClock key={messages[1].timestamp} timestamp={messages[1].timestamp-skew} mode="mini" />
             <Clock duration={messages[1].duration / 1000000} mode="big" />
           </>
       }
